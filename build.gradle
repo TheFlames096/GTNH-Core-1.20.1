@@ -1,6 +1,75 @@
+import net.fabricmc.loom.task.RemapJarTask
 plugins {
+    alias libs.plugins.architectury
     id "dev.architectury.loom" version "1.3-SNAPSHOT"
     id "maven-publish"
+    id "java"
+}
+
+apply plugin: "architectury-plugin"
+
+architectury {
+    platformSetupLoomIde()
+    forge()
+}
+
+static def isJetBrainsRuntime() {
+    return System.getProperty('java.vm.vendor').contains('JetBrains')
+}
+
+loom {
+    runs {
+        client {
+            property 'mixin.env.remapRefMap', 'true'
+            property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
+        }
+    }
+
+    silentMojangMappingsLicense()
+
+    // accessWidenerPath = file("src/main/resources/${mod_id}.accesswidener")
+
+    forge {
+        mixinConfig(
+                "${mod_id}.mixins.json"
+        )
+
+        convertAccessWideners = true
+        // extraAccessWideners.add loom.accessWidenerPath.get().asFile.name
+
+        dataGen {
+            mod(mod_id)
+        }
+    }
+
+    runConfigs.named("data").configure {
+        programArg("--existing=" + file("src/main/resources").absolutePath)
+    }
+
+    if (isJetBrainsRuntime()) {
+        runs {
+            client {
+                vmArgs '-XX:+AllowEnhancedClassRedefinition'
+                vmArgs '-XX:HotswapAgent=fatjar'
+            }
+        }
+    }
+    runs {
+        create("gameTestServer") {
+            server()
+            name("Minecraft Game Test")
+            source("main")
+
+            property("forge.enabledGameTestNamespaces", mod_id)
+            property("forge.gameTestServer", "true")
+
+            mods {
+                create(mod_id) {
+                    sourceSet("main")
+                }
+            }
+        }
+    }
 }
 
 base {
@@ -14,57 +83,95 @@ java {
     sourceCompatibility = targetCompatibility = JavaVersion.VERSION_17
 }
 
-loom {
-    // use this if you are using the official mojang mappings
-    // and want loom to stop warning you about their license
-    silentMojangMappingsLicense()
-
-    // since loom 0.10, you are **required** to use the
-    // "forge" block to configure forge-specific features,
-    // such as the mixinConfigs array or datagen
-    forge {
-        // specify the mixin configs used in this mod
-        // this will be added to the jar manifest as well!
-        mixinConfigs = [
-                "examplemod.mixins.json"
-        ]
-
-        // missing access transformers?
-        // don't worry, you can still use them!
-        // note that your AT *MUST* be located at
-        // src/main/resources/META-INF/accesstransformer.cfg
-        // to work as there is currently no config option to change this.
-        // also, any names used in your access transformer will need to be
-        // in SRG mapped ("func_" / "field_" with MCP class names) to work!
-        // (both of these things may be subject to change in the future)
-    }
-}
-
 repositories {
-    // Add repositories to retrieve artifacts from in here.
-    // You should only use this when depending on other mods because
-    // Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
-    // See https://docs.gradle.org/current/userguide/declaring_repositories.html
-    // for more information about repositories.
+    flatDir {
+        dir 'libs'
+    }
+    mavenLocal()
+    mavenCentral()
+    maven { url = "https://api.modrinth.com/maven" } // LazyDFU, Jade
+    maven { url = "https://maven.terraformersmc.com/releases/" } // Mod Menu, EMI
+    maven { url = "https://maven.shedaniel.me/" } // Cloth Config, REI
+    maven {
+        url "https://cursemaven.com"
+        content {
+            includeGroup "curse.maven"
+        }
+    } // Curse Forge File
+    maven {
+        name = "Jared's maven"
+        url = "https://maven.blamejared.com/"
+    } // JEI
+    maven {
+        // location of a maven mirror for JEI files, as a fallback
+        name = "ModMaven"
+        url = "https://modmaven.dev"
+    } // JEI mirror, AE2
+    maven { url = "https://maven.parchmentmc.org" } // Parchment mappings
+    maven { url = "https://maven.quiltmc.org/repository/release" } // Quilt Mappings
+    maven { url = "https://maven.firstdarkdev.xyz/snapshots" } // LDLib
+    maven { // Flywheel
+        url = "https://maven.tterrag.com/"
+        content {
+            // need to be specific here due to version overlaps
+            includeGroup("com.jozufozu.flywheel")
+            includeGroup("com.tterrag.registrate")
+            includeGroup("com.simibubi.create")
+        }
+    }
+    maven { url = "https://maven.theillusivec4.top/" } // Curios
+    maven { // TOP
+        url "https://maven.k-4u.nl"
+    }
+    maven {
+        // saps.dev Maven (KubeJS and Rhino)
+        url = "https://maven.saps.dev/minecraft"
+        content {
+            includeGroup "dev.latvian.mods"
+        }
+    }
+    maven { url = "https://maven.jamieswhiteshirt.com/libs-release" } // Reach Entity Attributes
+    maven { url 'https://jitpack.io' } // Mixin Extras, Fabric ASM
+    maven {
+        url = "https://maven.tterrag.com/"
+        content {
+            includeGroup("com.tterrag.registrate")
+            includeGroup("com.simibubi.create")
+            includeGroup("com.jozufozu.flywheel")
+        }
+    }
+    maven {
+        name = "TerraformersMC"
+        url = "https://maven.terraformersmc.com/"
+    }
+    maven {
+        name = "Resourceful Bees Maven"
+        url = "https://maven.resourcefulbees.com/repository/maven-public/"
+    }
+    maven {
+        name = "SquidDev"
+        url = "https://squiddev.cc/maven"
+        content {
+            includeGroup("cc.tweaked.cobalt")
+        }
+    }
 }
 
 dependencies {
     // to change the versions see the gradle.properties file
-    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    minecraft libs.minecraft
+    forge forge.minecraftForge
 
-    // choose what mappings you want to use here
-    // leave this uncommented if you want to use
-    // mojang's official mappings, or feel free
-    // to add your own mappings here (how about
-    // mojmap layered with parchment, for example?)
-    mappings loom.officialMojangMappings()
-
-    // uncomment this if you want to use yarn mappings
-    // mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
-
-    // your forge dependency, this is **required** when using Forge Loom in forge mode!
-    forge "net.minecraftforge:forge:${project.forge_version}"
-
+    mappings loom.layered {
+        it.mappings("org.quiltmc:quilt-mappings:${libs.versions.minecraft.get()}+build.${libs.versions.quiltMappings.get()}:intermediary-v2")
+        it.parchment("org.parchmentmc.data:parchment-${libs.versions.minecraft.get()}:${libs.versions.parchment.get()}@zip")
+        it.officialMojangMappings { nameSyntheticMembers = false }
+    }
+    
+    modImplementation("com.tterrag.registrate:Registrate:${forge.versions.registrate.get()}")
+    modApi("com.lowdragmc.ldlib:ldlib-forge-${minecraft_version}:1.0.23.a") { transitive = false }
+    modImplementation("com.gregtechceu.gtceu:gtceu-${minecraft_version}:1.1.3.b") { transitive = false }
+    modApi("de.oceanlabs.mcp:mcp_config:1.20.1-20230612.114412") { transitive = false }
     // additional dependencies can be specified using loom's regular format
     // specifying a "mod" dependency (like modImplementation or modApi)
     // will cause loom to remap the file to your specified mappings
@@ -126,15 +233,19 @@ jar {
 publishing {
     publications {
         mavenJava(MavenPublication) {
+            groupId = 'com.theflames096.gtnhcore'
+            artifactId = 'gtnhcore'
+            version = '3.0'
             from components.java
         }
     }
 
     // See https://docs.gradle.org/current/userguide/publishing_maven.html for information on how to set up publishing.
     repositories {
-        // Add repositories to publish to here.
-        // Notice: This block does NOT have the same function as the block in the top level.
-        // The repositories here will be used for publishing your artifact, not for
-        // retrieving dependencies.
+        maven {
+          url 'https://maven.aliyun.com/repository/public/'
+        }
+        mavenLocal()
+        mavenCentral()
     }
 }

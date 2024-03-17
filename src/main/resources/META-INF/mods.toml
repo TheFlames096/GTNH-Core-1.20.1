@@ -10,11 +10,11 @@ license = "All rights reserved" # Want to make your mod open source? Check out h
 # A list of mods - how many allowed here is determined by the individual mod loader
 
 [[mods]]
-modId = "examplemod"
+modId = "extratech"
 # The version number of the mod - unlike in the Forge MDK,
 # we'll use the processResources task to replace this for us
 version = "${version}"
-displayName = "Example Mod"
+displayName = "ExtraTech"
 # This URL will be queried by the Forge update checker in order to find the latest version of your mod.
 # If an update is found, you'll see a little blinking "emerald" symbol on your Mods button!
 # updateJSONURL="https://changeme.dev/updates.json" #optional
@@ -38,7 +38,7 @@ Have I reached 280 characters yet?
 # An (optional) dependency for your mod. Though technically not required,
 # it's always helpful to add these to stop your mod from loading when something is missing
 # rather than erroring out later
-[[dependencies.examplemod]]
+[[dependencies.extratech]]
 modId = "forge"
 mandatory = true # do you **need** this mod to be able to launch?
 # A version range using interval notation.
@@ -48,11 +48,25 @@ ordering = "NONE" # Use this if you want your mod to be loaded specifically BEFO
 side = "BOTH" # Specify where this mod is required: can be BOTH, CLIENT or SERVER
 
 # And another dependency, use this if you want to require a certain Minecraft version.
-[[dependencies.examplemod]]
+[[dependencies.extratech]]
 modId = "minecraft"
 mandatory = true
 # See above for how to read this notation, this essentially means any
 # version of Minecraft from 1.20.1 (inclusive).
 versionRange = "[1.20.1,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.extratech]]
+modId = "gtceu"
+mandatory = true
+versionRange = "[1.1.3.b,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.extratech]]
+modId = "gtnn"
+mandatory = true
+versionRange = "[1.1.3.b,)"
 ordering = "NONE"
 side = "BOTH"
