@@ -16,7 +16,7 @@ public class ETMaterials {
     public static void init()
     {
         FirstDegreeMaterials.register();
-        MaterialFlagAddition.init();
+        MaterialFlagAddition.initOre();
     }
     //Basic Material
     public static Material Alumina;
