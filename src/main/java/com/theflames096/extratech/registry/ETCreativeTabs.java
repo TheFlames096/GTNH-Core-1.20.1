@@ -13,7 +13,7 @@ public class ETCreativeTabs {
     public static RegistryEntry<CreativeModeTab> ITEM = ETRegistries.REGISTRATE.defaultCreativeTab(ETCore.MOD_ID,
             builder -> builder.displayItems(new GTCreativeModeTabs.RegistrateDisplayItemsGenerator(ETCore.MOD_ID, ETRegistries.REGISTRATE))
                     .icon(ETItems.SUGAR_COKE::asStack)
-                    .title(Component.literal("ULV Covers Modern"))
+                    .title(Component.literal("ExtraTech"))
                     .build())
             .register();
 
