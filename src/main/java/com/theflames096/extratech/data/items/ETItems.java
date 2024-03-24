@@ -1,4 +1,4 @@
-package com.theflames096.extratech.data;
+package com.theflames096.extratech.data.items;
 
 import com.gregtechceu.gtceu.api.item.ComponentItem;
 import com.theflames096.extratech.registry.ETCreativeTabs;

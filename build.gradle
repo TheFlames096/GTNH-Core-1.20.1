@@ -1,75 +1,6 @@
-import net.fabricmc.loom.task.RemapJarTask
 plugins {
-    alias libs.plugins.architectury
     id "dev.architectury.loom" version "1.3-SNAPSHOT"
     id "maven-publish"
-    id "java"
-}
-
-apply plugin: "architectury-plugin"
-
-architectury {
-    platformSetupLoomIde()
-    forge()
-}
-
-static def isJetBrainsRuntime() {
-    return System.getProperty('java.vm.vendor').contains('JetBrains')
-}
-
-loom {
-    runs {
-        client {
-            property 'mixin.env.remapRefMap', 'true'
-            property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
-        }
-    }
-
-    silentMojangMappingsLicense()
-
-    // accessWidenerPath = file("src/main/resources/${mod_id}.accesswidener")
-
-    forge {
-        mixinConfig(
-                "${mod_id}.mixins.json"
-        )
-
-        convertAccessWideners = true
-        // extraAccessWideners.add loom.accessWidenerPath.get().asFile.name
-
-        dataGen {
-            mod(mod_id)
-        }
-    }
-
-    runConfigs.named("data").configure {
-        programArg("--existing=" + file("src/main/resources").absolutePath)
-    }
-
-    if (isJetBrainsRuntime()) {
-        runs {
-            client {
-                vmArgs '-XX:+AllowEnhancedClassRedefinition'
-                vmArgs '-XX:HotswapAgent=fatjar'
-            }
-        }
-    }
-    runs {
-        create("gameTestServer") {
-            server()
-            name("Minecraft Game Test")
-            source("main")
-
-            property("forge.enabledGameTestNamespaces", mod_id)
-            property("forge.gameTestServer", "true")
-
-            mods {
-                create(mod_id) {
-                    sourceSet("main")
-                }
-            }
-        }
-    }
 }
 
 base {
@@ -77,40 +8,81 @@ base {
 }
 
 version = project.mod_version
+mod_id = project.mod_id
+mod_author = project.mod_author
 group = project.maven_group
+
+def modId = project.mod_id
+def generatedResources = file("src/generated")
 
 java {
     sourceCompatibility = targetCompatibility = JavaVersion.VERSION_17
 }
 
-repositories {
-    flatDir {
-        dir 'libs'
+loom {
+    // use this if you are using the official mojang mappings
+    // and want loom to stop warning you about their license
+    silentMojangMappingsLicense()
+
+    // since loom 0.10, you are **required** to use the
+    // "forge" block to configure forge-specific features,
+    // such as the mixinConfigs array or datagen
+    forge {
+        // specify the mixin configs used in this mod
+        // this will be added to the jar manifest as well!
+        
+        //mixinConfigs = [
+        //        "${modId}.mixins.json"
+        //]
+
+        // missing access transformers?
+        // don't worry, you can still use them!
+        // note that your AT *MUST* be located at
+        // src/main/resources/META-INF/accesstransformer.cfg
+        // to work as there is currently no config option to change this.
+        // also, any names used in your access transformer will need to be
+        // in SRG mapped ("func_" / "field_" with MCP class names) to work!
+        // (both of these things may be subject to change in the future)
     }
-    mavenLocal()
-    mavenCentral()
-    maven { url = "https://api.modrinth.com/maven" } // LazyDFU, Jade
-    maven { url = "https://maven.terraformersmc.com/releases/" } // Mod Menu, EMI
-    maven { url = "https://maven.shedaniel.me/" } // Cloth Config, REI
-    maven {
-        url "https://cursemaven.com"
-        content {
-            includeGroup "curse.maven"
+
+    runs {
+        data {
+            data()
+            programArgs "--all", "--mod", modId
+            programArgs "--output", generatedResources.absolutePath
+            programArgs "--existing", file("src/main/resources").absolutePath
         }
-    } // Curse Forge File
+    }
+
+}
+
+sourceSets {
+    main {
+        resources.srcDir generatedResources
+    }
+}
+
+repositories {
+    mavenCentral()
     maven {
-        name = "Jared's maven"
-        url = "https://maven.blamejared.com/"
-    } // JEI
+        name 'FirstDarkDev'
+        url "https://maven.firstdarkdev.xyz/snapshots/"
+    }
     maven {
-        // location of a maven mirror for JEI files, as a fallback
-        name = "ModMaven"
-        url = "https://modmaven.dev"
-    } // JEI mirror, AE2
-    maven { url = "https://maven.parchmentmc.org" } // Parchment mappings
-    maven { url = "https://maven.quiltmc.org/repository/release" } // Quilt Mappings
-    maven { url = "https://maven.firstdarkdev.xyz/snapshots" } // LDLib
-    maven { // Flywheel
+        name 'Quilt'
+        url 'https://maven.quiltmc.org/repository/release/'
+    }
+    maven {
+        name = 'ParchmentMC'
+        url = 'https://maven.parchmentmc.org'
+    }
+    maven {
+        url "https://maven.saps.dev/releases/"
+        content {
+            includeGroup "dev.latvian.mods"
+        }
+    }
+    maven { // Registrate
         url = "https://maven.tterrag.com/"
         content {
             // need to be specific here due to version overlaps
@@ -119,82 +91,79 @@ repositories {
             includeGroup("com.simibubi.create")
         }
     }
-    maven { url = "https://maven.theillusivec4.top/" } // Curios
-    maven { // TOP
-        url "https://maven.k-4u.nl"
+    maven {
+        // Patchouli, JEI
+        name = "BlameJared"
+        url = "https://maven.blamejared.com/"
     }
     maven {
-        // saps.dev Maven (KubeJS and Rhino)
-        url = "https://maven.saps.dev/minecraft"
+        url = "https://maven.theillusivec4.top/"
+    }
+    maven {
+        // Curse Forge File
+        url "https://cursemaven.com/"
+        content {
+            includeGroup "curse.maven"
+        }
+    }
+    maven { // FTB Mods
+        url "https://maven.saps.dev/releases"
         content {
             includeGroup "dev.latvian.mods"
-        }
-    }
-    maven { url = "https://maven.jamieswhiteshirt.com/libs-release" } // Reach Entity Attributes
-    maven { url 'https://jitpack.io' } // Mixin Extras, Fabric ASM
-    maven {
-        url = "https://maven.tterrag.com/"
-        content {
-            includeGroup("com.tterrag.registrate")
-            includeGroup("com.simibubi.create")
-            includeGroup("com.jozufozu.flywheel")
+            includeGroup "dev.ftb.mods"
         }
     }
     maven {
-        name = "TerraformersMC"
-        url = "https://maven.terraformersmc.com/"
-    }
-    maven {
-        name = "Resourceful Bees Maven"
-        url = "https://maven.resourcefulbees.com/repository/maven-public/"
-    }
-    maven {
-        name = "SquidDev"
-        url = "https://squiddev.cc/maven"
+        url "https://maven.saps.dev/snapshots"
         content {
-            includeGroup("cc.tweaked.cobalt")
+            includeGroup "dev.latvian.mods"
+            includeGroup "dev.ftb.mods"
+        }
+    }
+    maven {
+        url "https://maven.ftb.dev/snapshots"
+        content {
+            includeGroup "dev.ftb.mods"
         }
     }
 }
 
 dependencies {
-    // to change the versions see the gradle.properties file
-    minecraft libs.minecraft
-    forge forge.minecraftForge
-
-    mappings loom.layered {
-        it.mappings("org.quiltmc:quilt-mappings:${libs.versions.minecraft.get()}+build.${libs.versions.quiltMappings.get()}:intermediary-v2")
-        it.parchment("org.parchmentmc.data:parchment-${libs.versions.minecraft.get()}:${libs.versions.parchment.get()}@zip")
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    forge "net.minecraftforge:forge:${project.minecraft_version}-${project.forge_version}"
+    // layered mappings - Mojmap names, parchment and QM docs and parameters
+    mappings loom.layered {it.parchment("org.parchmentmc.data:parchment-${project.minecraft_version}:${project.parchment_mappings}@zip")
         it.officialMojangMappings { nameSyntheticMembers = false }
     }
-    
-    modImplementation("com.tterrag.registrate:Registrate:${forge.versions.registrate.get()}")
-    modApi("com.lowdragmc.ldlib:ldlib-forge-${minecraft_version}:1.0.23.a") { transitive = false }
-    modImplementation("com.gregtechceu.gtceu:gtceu-${minecraft_version}:1.1.3.b") { transitive = false }
-    modApi("de.oceanlabs.mcp:mcp_config:1.20.1-20230612.114412") { transitive = false }
-    // additional dependencies can be specified using loom's regular format
-    // specifying a "mod" dependency (like modImplementation or modApi)
-    // will cause loom to remap the file to your specified mappings
 
-    // in this example, we'll be adding JEI as a dependency
-    // according to their developer example on GitHub
-    // see: https://github.com/mezz/JustEnoughItems/wiki/Getting-Started
-    // compile against the JEI API but do not include it at runtime
-    // don't worry about loom "not finding a forge mod" here,
-    // JEI's api just doesn't have any class with an @Mod annotation
-    // modCompileOnly "mezz.jei:jei-1.20.1:${jei_version}:api"
-    // at runtime, use the full JEI jar
-    // modRuntimeOnly "mezz.jei:jei-1.20.1:${jei_version}"
+    modCompileOnly("mezz.jei:jei-${project.minecraft_version}-forge-api:${project.jei_version}") { transitive = false }
+    modCompileOnly("mezz.jei:jei-${project.minecraft_version}-common-api:${project.jei_version}") { transitive = false }
+
+    modImplementation("com.gregtechceu.gtceu:gtceu-${project.minecraft_version}:${project.gtceu_version}") { transitive = false }
+    modImplementation("com.lowdragmc.ldlib:ldlib-forge-${project.minecraft_version}:${project.ldlib_version}") { transitive = false }
+    modImplementation("com.tterrag.registrate:Registrate:${project.registrate_version}")
+
+    modRuntimeOnly("vazkii.patchouli:Patchouli:${project.minecraft_version}-${project.patchouli_version}-FORGE")
+    modRuntimeOnly("top.theillusivec4.curios:curios-forge:${project.curios_version}+${project.minecraft_version}")
+    modRuntimeOnly("dev.toma.configuration:configuration-forge-${project.minecraft_version}:${project.configuration_version}")
+    modRuntimeOnly("mezz.jei:jei-${project.minecraft_version}-forge:${project.jei_version}") { transitive = false }
+    modImplementation("dev.latvian.mods:kubejs-forge:${project.kubejs_version}")
+
+    // Mixin Extras
+    implementation(annotationProcessor("io.github.llamalad7:mixinextras-common:${project.mixinextras_version}"))
+    implementation(include("io.github.llamalad7:mixinextras-forge:${project.mixinextras_version}"))
+
+    // lombok
+    compileOnly 'org.projectlombok:lombok:1.18.24'
+    annotationProcessor 'org.projectlombok:lombok:1.18.24'
 }
 
 processResources {
     // define properties that can be used during resource processing
-    inputs.property "version", project.version
+    inputs.property "version", version
 
-    // this will replace the property "${version}" in your mods.toml
-    // with the version you've defined in your gradle.properties
     filesMatching("META-INF/mods.toml") {
-        expand "version": project.version
+        expand "version": version
     }
 }
 
@@ -218,12 +187,12 @@ jar {
     // add some additional metadata to the jar manifest
     manifest {
         attributes([
-                "Specification-Title"     : project.mod_id,
-                "Specification-Vendor"    : project.mod_author,
+                "Specification-Title"     : mod_id,
+                "Specification-Vendor"    : mod_author,
                 "Specification-Version"   : "1",
                 "Implementation-Title"    : project.name,
                 "Implementation-Version"  : version,
-                "Implementation-Vendor"   : project.mod_author,
+                "Implementation-Vendor"   : mod_author,
                 "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
         ])
     }
@@ -233,19 +202,15 @@ jar {
 publishing {
     publications {
         mavenJava(MavenPublication) {
-            groupId = 'com.theflames096.gtnhcore'
-            artifactId = 'gtnhcore'
-            version = '3.0'
             from components.java
         }
     }
 
     // See https://docs.gradle.org/current/userguide/publishing_maven.html for information on how to set up publishing.
     repositories {
-        maven {
-          url 'https://maven.aliyun.com/repository/public/'
-        }
-        mavenLocal()
-        mavenCentral()
+        // Add repositories to publish to here.
+        // Notice: This block does NOT have the same function as the block in the top level.
+        // The repositories here will be used for publishing your artifact, not for
+        // retrieving dependencies.
     }
 }
