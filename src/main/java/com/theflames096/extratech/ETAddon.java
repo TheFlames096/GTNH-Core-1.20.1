@@ -32,4 +32,9 @@ public class ETAddon implements IGTAddon {
     public void addRecipes(Consumer<FinishedRecipe> provider) {
         ETRecipes.init(provider);
     }
+    
+    @Override
+    public boolean requiresHighTier() {
+        return true;
+    }
 }

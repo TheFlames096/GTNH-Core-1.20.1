@@ -1,15 +1,20 @@
 package com.theflames096.extratech;
 
+import com.gregtechceu.gtceu.api.GTCEuAPI;
+import com.gregtechceu.gtceu.api.data.chemical.material.event.MaterialEvent;
+import com.gregtechceu.gtceu.api.data.chemical.material.event.MaterialRegistryEvent;
 import com.gregtechceu.gtceu.api.data.chemical.material.event.PostMaterialEvent;
 import com.gregtechceu.gtceu.api.data.chemical.material.info.MaterialFlags;
+import com.gregtechceu.gtceu.api.data.chemical.material.registry.MaterialRegistry;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
 import com.theflames096.extratech.data.ETDatagen;
+import com.theflames096.extratech.data.ETMaterials;
 import com.theflames096.extratech.data.items.ETItems;
+import com.theflames096.extratech.data.materials.MaterialFlagAddition;
 import com.theflames096.extratech.registry.ETCreativeModeTabs;
 import com.theflames096.extratech.registry.ETRegistries;
 import com.mojang.logging.LogUtils;
-
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.ModLoadingContext;
@@ -27,12 +32,13 @@ public class ETCore {
     public static final String MOD_ID = "extratech";
 
     private static final Logger LOGGER = LogUtils.getLogger();
+    public static MaterialRegistry MATERIAL_REGISTRY;
 
     public ETCore()
     {
         ETCore.init();
         var bus = FMLJavaModLoadingContext.get().getModEventBus();
-        bus.register(this);
+        bus.register(ETRegistries.class);
     }
 
     public static void init() {
@@ -41,7 +47,6 @@ public class ETCore {
         //LOGGER.info("initializing ulv covers modern");
         ETCreativeModeTabs.init();
         ETItems.init();
-
         ETDatagen.init();
 
         ETRegistries.REGISTRATE.registerRegistrate();
@@ -50,15 +55,5 @@ public class ETCore {
 
     public static ResourceLocation id(String name) {
         return new ResourceLocation(MOD_ID, FormattingUtil.toLowerCaseUnder(name));
-    }
-
-    @SubscribeEvent
-    public void modifyMaterials(PostMaterialEvent event) {
-        // add copper stuff
-        Copper.addFlags(
-            MaterialFlags.GENERATE_SMALL_GEAR, 
-            MaterialFlags.GENERATE_ROTOR, 
-            MaterialFlags.GENERATE_BOLT_SCREW
-        );
     }
 }
