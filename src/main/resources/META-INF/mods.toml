@@ -56,3 +56,10 @@ description='''ULV Covers Modern'''
     versionRange = "[1.0.16,)"
     ordering = "AFTER"
     side = "BOTH"
+
+[[dependencies.extratech]]
+    modId = "gtnn"
+    mandatory = true
+    versionRange = "[1.0.3,)"
+    ordering = "AFTER"
+    side = "BOTH"

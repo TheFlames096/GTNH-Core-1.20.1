@@ -7,4 +7,29 @@ pluginManagement {
         maven { url "https://files.minecraftforge.net/maven/" }
         gradlePluginPortal()
     }
+    
+}
+dependencyResolutionManagement {
+    repositories {
+        mavenCentral()
+    }
+    versionCatalogs {
+        def minecraftVersion = "1.20.1"
+        
+        def botarium_version = "2.3.1"
+        def ad_astra_version = "1.15.10"
+        def resourcefullib_version = "2.1.20"
+        def resourcefulconfig_version = "2.1.2"
+        forge
+        {
+            def ad_astra = version("ad_astra", ad_astra_version)
+            library("ad_astra", "earth.terrarium.adastra", "ad_astra-forge-1.20.1").versionRef(ad_astra)
+            def botarium = version("botarium", botarium_version)
+            library("botarium", "earth.terrarium.botarium", "botarium-forge-${minecraftVersion}").versionRef(botarium)
+            def resourcefullib = version("resourcefullib", resourcefullib_version)
+            library("resourcefullib", "com.teamresourceful.resourcefullib", "resourcefullib-forge-${minecraftVersion}").versionRef(resourcefullib)
+            def resourcefulconfig = version("resourcefulconfig", resourcefulconfig_version)
+            library("resourcefulconfig", "com.teamresourceful.resourcefulconfig", "resourcefulconfig-forge-${minecraftVersion}").versionRef(resourcefulconfig)
+        }
+    }
 }

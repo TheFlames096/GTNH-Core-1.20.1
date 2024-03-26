@@ -7,6 +7,7 @@ base {
     archivesName = project.archives_base_name
 }
 
+
 version = project.mod_version
 mod_id = project.mod_id
 mod_author = project.mod_author
@@ -126,6 +127,14 @@ repositories {
             includeGroup "dev.ftb.mods"
         }
     }
+    maven {
+        name = "TerraformersMC"
+        url = "https://maven.terraformersmc.com/"
+    }
+    maven {
+        name = "Resourceful Bees Maven"
+        url = "https://maven.resourcefulbees.com/repository/maven-public/"
+    }
 }
 
 dependencies {
@@ -156,6 +165,14 @@ dependencies {
     // lombok
     compileOnly 'org.projectlombok:lombok:1.18.24'
     annotationProcessor 'org.projectlombok:lombok:1.18.24'
+
+    // AdAstra
+    modImplementation(forge.ad.astra) { transitive = false }
+    modImplementation(forge.resourcefullib) { transitive = false }
+    modImplementation(forge.resourcefulconfig)
+    modImplementation(forge.botarium)
+    forgeRuntimeLibrary("com.teamresourceful:ByteCodecs:1.0.2")
+    forgeRuntimeLibrary("com.teamresourceful:yabn:1.0.3")
 }
 
 processResources {
