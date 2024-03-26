@@ -39,7 +39,7 @@ public class ETOreVeins {
                     .placement(SurfaceIndicatorGenerator.IndicatorPlacement.ABOVE)
                     .density(0.4f)
                     .radius(5)));
-    public static final GTOreDefinition TOPAZ_VEIN_TF = GTOres.create(new ResourceLocation("topaz_vein_tf"), vein -> vein
+    public static GTOreDefinition TOPAZ_VEIN_TF = GTOres.create(new ResourceLocation("topaz_vein_tf"), vein -> vein
             .clusterSize(25).density(0.25f).weight(25)
             .layer(WorldGenLayers.getByName("tf"))
             .dimensions(TWILIGHT_FOREST)
@@ -64,5 +64,7 @@ public class ETOreVeins {
         GTRegistries.ORE_VEINS.remove(new ResourceLocation("topaz_vein"));
         GTRegistries.ORE_VEINS.remove(new ResourceLocation("galena_vein"));
         GTRegistries.ORE_VEINS.remove(new ResourceLocation("nickel_vein"));
+        GTRegistries.ORE_VEINS.remove(new ResourceLocation("monazite_vein"));
+        GTRegistries.ORE_VEINS.remove(new ResourceLocation("bauxite_vein_end"));
     }
 }
