@@ -31,7 +31,7 @@ public class ETAddon implements IGTAddon {
 
     @Override
     public void addRecipes(Consumer<FinishedRecipe> provider) {
-        ETRecipes.init(provider);
+        ETRecipes.initAdd(provider);
     }
     
     @Override
