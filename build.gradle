@@ -7,7 +7,6 @@ base {
     archivesName = project.archives_base_name
 }
 
-
 version = project.mod_version
 mod_id = project.mod_id
 mod_author = project.mod_author
@@ -161,18 +160,9 @@ dependencies {
     // Mixin Extras
     implementation(annotationProcessor("io.github.llamalad7:mixinextras-common:${project.mixinextras_version}"))
     implementation(include("io.github.llamalad7:mixinextras-forge:${project.mixinextras_version}"))
-
     // lombok
     compileOnly 'org.projectlombok:lombok:1.18.24'
     annotationProcessor 'org.projectlombok:lombok:1.18.24'
-
-    // AdAstra
-    modImplementation(forge.ad.astra) { transitive = false }
-    modImplementation(forge.resourcefullib) { transitive = false }
-    modImplementation(forge.resourcefulconfig)
-    modImplementation(forge.botarium)
-    forgeRuntimeLibrary("com.teamresourceful:ByteCodecs:1.0.2")
-    forgeRuntimeLibrary("com.teamresourceful:yabn:1.0.3")
 }
 
 processResources {
